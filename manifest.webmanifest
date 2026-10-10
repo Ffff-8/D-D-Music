@@ -1,0 +1,18 @@
+{
+  "id": "./index.html",
+  "name": "D&D Soundboard",
+  "short_name": "D&D Soundboard",
+  "description": "Soundboard D&D con musica, effetti e controlli rapidi, anche offline.",
+  "lang": "it-IT",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#100e16",
+  "theme_color": "#17131e",
+  "categories": ["entertainment", "music", "games"],
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

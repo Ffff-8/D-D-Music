@@ -1,0 +1,32 @@
+D&D Soundboard — effetti AI generati e fallback offline
+=====================================================
+
+Apri index.html in un browser. I sette effetti sono collegati ai pulsanti rapidi e alle categorie. Quando sei online, la soundboard prova a riprodurre gli MP3 generati con AI; se un link non risponde, passa ai WAV locali inclusi nel pacchetto.
+
+Effetti generati:
+- Impatto spada su armatura
+- Parata di lame
+- Colpo critico
+- Congelamento
+- Avvelenamento
+- Scottatura
+- Cura magica
+
+IMPORTANTE: i link agli MP3 generati sono URL temporanei firmati dal servizio di generazione e possono scadere. L'ambiente di creazione non è riuscito a scaricare i byte degli MP3 nel pacchetto; perciò gli MP3 AI sono richiamati online, non incorporati fisicamente nello ZIP. I WAV locali sono prototipi procedurali di riserva e funzionano offline.
+
+Per avere gli MP3 AI offline: apri la scheda Offline nell'app e salva gli MP3 dai link disponibili finché sono validi; poi usa “Oppure scegli più file” per collegarli. Per una conservazione definitiva, tieni i file scaricati sul dispositivo.
+
+Struttura:
+index.html
+assets/*.wav
+
+La musica online resta online; per l'offline completo della musica bisogna collegare file musicali locali nella scheda Offline. Nessun abbonamento viene richiesto dal progetto per riprodurre i file locali.
+
+Aggiornamento: aggiunto il controllo Pausa/Riprendi musica (mantiene la posizione; Stop azzera la traccia), un attacco rapido breve, ferita sulla carne, morte del giocatore, morte del mostro e sting di vittoria. I nuovi effetti AI sono collegati con URL remoti firmati e potrebbero scadere; i file WAV di riserva restano locali, ma non sono sostituti realistici per tutti i nuovi effetti. Per uso offline, scaricare gli MP3 finché i link sono validi e caricarli nella scheda Offline.
+
+Correzione audio (10 ottobre 2026): rigenerati tre effetti separati su richiesta:
+- Ferita sulla carne: taglio breve e impatto organico, senza campane, tintinnii o suoni magici.
+- Morte del giocatore: esalazione/gemito umano e caduta del corpo.
+- Morte del mostro: ringhio gutturale non umano e caduta; concepito come creatura generica, non drago.
+
+I tre effetti online sono mappati ai rispettivi pulsanti. Per l'offline, sono presenti tre WAV di riserva distinti (`ferita-carne.wav`, `morte-giocatore.wav`, `morte-mostro.wav`): sono placeholder procedurali semplificati e non registrazioni realistiche. Gli MP3 AI restano collegati tramite URL temporanei e non sono incorporati fisicamente nello ZIP.

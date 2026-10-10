@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta name="theme-color" content="#17131e"><meta name="description" content="Soundboard D&D con effetti, musica e controlli rapidi, utilizzabile offline."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png" type="image/png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>D&D Soundboard — Rapida</title>
+<style>
+:root{color-scheme:dark;--bg:#100e16;--panel:#1c1924;--panel2:#292431;--text:#f6f0fb;--muted:#c2b8ce;--gold:#e5bd72;--border:#403749}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#34263d 0,#100e16 60%);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{max-width:1100px;margin:auto;padding:0 12px}header{padding-top:18px;padding-bottom:10px}h1{font-size:clamp(1.55rem,4vw,2.3rem);margin:0}h2{font-size:1.08rem;margin:18px 0 9px}p{color:var(--muted);margin:6px 0}.note{border-left:3px solid var(--gold);background:#211d29;padding:9px 11px;border-radius:4px;font-size:.85rem}
+.top{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.top button{flex:1;min-width:100px}.tab.active{background:#594126;border-color:var(--gold)}
+button,input,select{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px}button{cursor:pointer;touch-action:manipulation}button:hover{border-color:var(--gold)}button:active{transform:scale(.985)}
+.primary{background:#604628;border-color:#9e7844}.danger{background:#51232d;border-color:#8b3c4b}
+.controls{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}.controls label{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:.85rem}input[type=range]{padding:0;accent-color:var(--gold);width:112px}
+#status{font-size:.8rem;color:var(--gold);margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}.card{background:linear-gradient(145deg,#292331,#191720);border:1px solid var(--border);border-radius:12px;padding:11px;display:flex;flex-direction:column;gap:7px;min-height:135px}.card h3{margin:0;font-size:.96rem}.card p{font-size:.8rem;margin:0}.actions{display:flex;gap:6px;margin-top:auto}.actions button,.actions a{flex:1;text-align:center}.actions a{color:#e8c983;font-size:.78rem;padding:9px 5px;text-decoration:none;border:1px solid var(--border);border-radius:9px}
+.fxgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.fx{min-height:63px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:9px;font-size:.86rem}.fx small{color:var(--gold);font-size:.69rem}.fx.playing{border-color:var(--gold);background:#493522}
+.panel{display:none}.panel.active{display:block}.hidden{display:none!important}.section-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+footer{font-size:.8rem;padding-top:20px;padding-bottom:30px;color:var(--muted)}a{color:#e8c983}
+@media(max-width:500px){.grid{grid-template-columns:1fr 1fr}.card{min-height:150px;padding:9px}.fxgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.fx{min-height:58px;padding:8px}.controls{gap:7px}.top button{font-size:.88rem;padding:9px}}
+</style></head><body>
+<header><h1>🎲 D&D Soundboard</h1>
+<p>Una plancia semplice: scegli la musica, poi attiva gli effetti in qualsiasi momento.</p>
+<p class="note"><strong>Musica online:</strong> premi Play. <strong>Effetti:</strong> 12 suoni AI generati disponibili online finché i link sono validi; 7 WAV di riserva sono inclusi per l’uso offline.</p></header>
+<main>
+<div class="top">
+<button class="tab active" data-panel="battle">⚔️ Battaglia</button>
+<button class="tab" data-panel="mood">🌲 Atmosfere</button>
+<button class="tab" data-panel="effects">💥 Effetti</button>
+<button class="tab" data-panel="offline">📁 Offline</button>
+</div>
+<div class="controls">
+<label>Musica <input id="mv" type="range" min="0" max="100" value="65"><span id="mvn">65%</span></label>
+<label>Effetti <input id="fv" type="range" min="0" max="200" value="140"><span id="fvn">140%</span></label>
+<button id="pauseMusic" class="primary">Ⅱ Pausa musica</button><button id="stopMusic" class="danger">■ Stop musica</button><button id="stopFx" class="danger">■ Stop effetti</button><button id="stopAll" class="danger">■ Stop tutto</button>
+<span id="status" aria-live="polite">Pronta</span>
+</div>
+<section id="panel-battle" class="panel active">
+<div class="section-title"><h2>⚔️ Battaglia</h2><button id="battleSequence" class="primary">▶ Entrata + battaglia</button></div>
+<p>Il tasto grande avvia l'intro; poi passa automaticamente al tema di battaglia. Puoi cambiare musica in qualunque momento.</p>
+<div id="battleMusic" class="grid"></div>
+<h2>Effetti rapidi durante il combattimento</h2><div id="quickFx" class="fxgrid"></div>
+</section>
+<section id="panel-mood" class="panel">
+<h2>🌲 Atmosfera e scena</h2><p>Musiche continue per esplorazione, villaggio, magia e momenti inquietanti.</p><div id="moodMusic" class="grid"></div>
+</section>
+<section id="panel-effects" class="panel">
+<h2>💥 Effetti sonori</h2><p>Gli effetti AI generati sono selezionati automaticamente quando sei online; se la connessione manca o i link scadono, la soundboard usa effetti di riserva locali distinti, più semplici ma senza riutilizzare lo stesso suono per ferita, morte umana e morte del mostro. Puoi anche scaricare gli MP3 AI dalla sezione Offline e collegarli come file locali. Gli effetti si sovrappongono alla musica e hanno un controllo volume potenziato.</p>
+<div id="fxGroups"></div>
+</section>
+<section id="panel-offline" class="panel">
+<h2>📁 Modalità offline</h2>
+<p>Seleziona la cartella dove hai estratto gli effetti audio. Non dovrai caricare un file ogni volta: il player userà la selezione corrente mentre resta aperto. Alcuni browser Android non supportano la selezione di cartelle; in quel caso seleziona più file audio con il secondo pulsante.</p>
+<div class="controls"><label>Collega cartella audio <input id="folder" type="file" webkitdirectory directory multiple accept="audio/*"></label></div>
+<div class="controls"><label>Oppure scegli più file <input id="files" type="file" accept="audio/*" multiple></label></div>
+<div id="localList"></div>
+<h2>Librerie Foley gratuite (CC0)</h2>
+<p><a href="https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx" target="_blank" rel="noopener">Scarica Tinysized Foley — 96 suoni organici, 13 MB (spade, passi, fiale, metallo, frecce, acqua)</a></p>
+<p><a href="https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes" target="_blank" rel="noopener">Scarica 20 suoni di attacchi e parate con spade (CC0)</a></p>
+<p><a href="https://opengameart.org/content/sound-effects-pack" target="_blank" rel="noopener">Altri Foley registrati: passi, tessuti, impatti, acqua e suoni umani (CC0, pacchetto grande)</a></p>
+<p><strong>MP3 generati per questa soundboard (link temporanei):</strong> se vuoi usarli anche offline, apri e salva ciascun MP3, poi seleziona i file con il pulsante “Oppure scegli più file”. I link possono scadere dopo un periodo limitato.</p>
+<ul>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/3b694770-e3cb-4db3-ab4e-b8e48f2f7026/D_D___Impatto_spada_su_armatura.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmQxZWE0OGUwM2Q4YzIzMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5NTcyNn0.7ra5bxk2piJHA7DdCXrpdKfu0AOxfcU0vI5WrCUMlHA" target="_blank" rel="noopener">Impatto spada su armatura</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/cf542b71-0c58-4054-82a3-202dc70d549a/D_D___Parata_di_lame.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZTQ3YmJjNWJiN2E5YzU4ZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc2ODc5NX0.dl08-dQr72yArj6XdFR_wnD2ClPdA6M53P5294XqlcI" target="_blank" rel="noopener">Parata di lame</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/f19a3389-7613-42f9-bdf4-ecff31bf8f0e/D_D___Colpo_critico.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYzEzOWM5MzIxOTU0N2Q3ZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTczODU0Nn0.pJDtpaRMuHBrvl1mrAImZtfcFdqL-qE1vEGVSsDFIxU" target="_blank" rel="noopener">Colpo critico</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/048dffcd-c3cd-4266-af4d-1c0678b2af9d/D_D___Congelamento.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNGQzMmI0N2Q2NjQzNDQ1MyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5NTgzN30.nMpVjs91oQLiLDpyj7CAct6LGjCtwW8HpLreJhVKoWU" target="_blank" rel="noopener">Congelamento</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/da8595dc-160b-4031-ae4b-ad4da3546e04/D_D___Avvelenamento.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYTI1ZjVkZWM4NTExMDBlOSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTczMDE1Nn0.oHYQmzwFv1llNkSSiCMl-IyUtbvVqLtuBTJrTgpZcfk" target="_blank" rel="noopener">Avvelenamento</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/3b2a4958-5eb3-4639-a002-990f0d888cd6/D_D___Scottatura.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDQ5ZDYzOTdjOTFkODdjMyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc3MjMxMX0.d4iL1ZzR1SjzzczFFkvdlbpvTVsGTVB6dNb133jr9wo" target="_blank" rel="noopener">Scottatura</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/6d87cee9-96c6-4e76-b6db-33bbaca85c8e/D_D___Attacco_rapido.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMWQ5N2UzYmIwZmMwM2E2MyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTcxNTg5OX0.PuRXcFTqTa0pwwn3cxAPfhF0Zu1UF9E7d-4r-OOhLZw" target="_blank" rel="noopener">Attacco rapido (corto)</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/9fa1457d-319f-41b0-9bad-4b51c4e384be/D_D___Ferita_sulla_carne__senza_campana_.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYTA3MzJmY2VlZjE0MTRjNSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc4ODIzOH0.-p66Mn4_zAeYCB7C5DaECdxk6r9hxPEsGvDSmRcpi_A" target="_blank" rel="noopener">Ferita sulla carne — nuova versione senza campana</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/41a1d5f7-6dae-4c97-9cf5-e6f3eb0e68fb/D_D___Morte_umana_del_giocatore.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMzU0OThjODVhMzNjZDc0MSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsImV4cCI6MTc5MTc5NDk0OX0.g36fyzbZ6c17Ft-ZErmgC92JFmEDEIi123r7YKB_dD8" target="_blank" rel="noopener">Morte umana del giocatore — nuova versione</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/45d7210b-c2f6-4257-be50-745e44dee0ee/D_D___Morte_generica_del_mostro.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNDBkZmVkZWEyNGNkZGJhMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5OTY1OH0.2Y3NVvOOjV_Q9FN87Jp3qIvA-DqkHXcn4Qt0d7-juyc" target="_blank" rel="noopener">Morte del mostro — creatura generica, non drago</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/28261183-ad00-487f-a68e-91fa7be51031/D_D___Vittoria.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOTczMDdjYjk5NjVlNjk0OSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsImV4cCI6MTc5MTc2OTI3M30.sLoaAJI1k-yBVkl8hXgK0iXz2235jOuf_px6qbaqc2A" target="_blank" rel="noopener">Vittoria</a></li>
+<li><a href="https://dnznrvs05pmza.cloudfront.net/audio_sfx/0baf3a60-5152-4b5f-8ac5-02f12ba86d20/D_D___Cura_magica.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmJhMjJjNTBlNmE2YmRlMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc0Njc2OH0.qro1VsDNfsyPm_bTcd_L_avtLHm8RvvYGxEVaE_BjSA" target="_blank" rel="noopener">Cura magica</a></li>
+</ul>
+<p><a href="https://opengameart.org/content/jrpg-epic-rock-battle-theme-1" target="_blank" rel="noopener">Musica di battaglia (CC0)</a> · <a href="https://opengameart.org/content/boss-battle-theme" target="_blank" rel="noopener">Boss battle (CC0)</a></p>
+</section>
+</main><footer><p>Gli effetti AI vengono caricati da link temporanei quando sei online; i WAV locali sono una riserva offline. I link alle librerie Foley esterne rimandano alle rispettive pagine OpenGameArt e alle licenze indicate. Le tracce indicate come CC0 sono liberamente riutilizzabili secondo i termini della licenza riportata nella rispettiva pagina. I link diretti potrebbero cambiare nel tempo. Per l'offline completo, scarica le risorse una volta e conserva i file sul dispositivo.</p></footer>
+<script>
+const MUSIC=[{"id": "entry", "filename": "jrpg_battle_intro.mp3", "name": "⚔️ Entrata in battaglia", "subtitle": "Intro breve → battaglia", "url": "https://opengameart.org/sites/default/files/jrpg_battle_intro.mp3", "source": "https://opengameart.org/content/jrpg-epic-rock-battle-theme-1", "loop": false, "group": "battle"}, {"id": "battle", "filename": "jrpg_battle_loop.mp3", "name": "🔥 Battaglia epica", "subtitle": "Tema orchestrale, loop", "url": "https://opengameart.org/sites/default/files/jrpg_battle_loop.mp3", "source": "https://opengameart.org/content/jrpg-epic-rock-battle-theme-1", "loop": true, "group": "battle"}, {"id": "battle2", "filename": "battleThemeA.mp3", "name": "🛡️ Battaglia orchestrale", "subtitle": "ArchI e ottoni, battaglia fantasy", "url": "https://lpc.opengameart.org/sites/default/files/battleThemeA.mp3", "source": "https://lpc.opengameart.org/content/battle-theme-a", "loop": true, "group": "battle"}, {"id": "boss", "filename": "CleytonRX - Battle RPG Theme.mp3", "name": "👑 Boss finale", "subtitle": "Tema da boss, epico e aggressivo", "url": "https://opengameart.org/sites/default/files/CleytonRX%20-%20Battle%20RPG%20Theme_1.mp3", "source": "https://opengameart.org/content/boss-battle-theme", "loop": true, "group": "battle"}, {"id": "nature", "filename": "back_to_nature.mp3", "name": "🌲 Viaggio e foresta", "subtitle": "Esplorazione tranquilla", "url": "https://opengameart.org/sites/default/files/back_to_nature.mp3", "source": "https://opengameart.org/content/fantasy-song-pack-volume-1", "loop": true, "group": "calm"}, {"id": "magic", "filename": "fairy_lights.mp3", "name": "✨ Magia e meraviglia", "subtitle": "Luoghi incantati", "url": "https://opengameart.org/sites/default/files/fairy_lights.mp3", "source": "https://opengameart.org/content/fantasy-song-pack-volume-1", "loop": true, "group": "calm"}, {"id": "village", "filename": "homestead.mp3", "name": "🏘️ Villaggio e riposo", "subtitle": "Casa, locanda, pausa", "url": "https://opengameart.org/sites/default/files/homestead.mp3", "source": "https://opengameart.org/content/fantasy-song-pack-volume-1", "loop": true, "group": "calm"}, {"id": "travel", "filename": "jaunt.mp3", "name": "🧭 Viaggio e avventura", "subtitle": "Cammino e scoperta", "url": "https://opengameart.org/sites/default/files/jaunt.mp3", "source": "https://opengameart.org/content/fantasy-song-pack-volume-1", "loop": true, "group": "calm"}, {"id": "winter", "filename": "bells_of_winter.mp3", "name": "❄️ Mistero e inverno", "subtitle": "Atmosfera fredda e malinconica", "url": "https://opengameart.org/sites/default/files/bells_of_winter.mp3", "source": "https://opengameart.org/content/fantasy-song-pack-volume-1", "loop": true, "group": "dark"}, {"id": "snow", "filename": "snow_day.mp3", "name": "🌨️ Paesaggio innevato", "subtitle": "Calma, montagne e gelo", "url": "https://opengameart.org/sites/default/files/snow_day.mp3", "source": "https://opengameart.org/content/fantasy-song-pack-volume-1", "loop": true, "group": "calm"}, {"id": "woods", "filename": "wandering_woodlands.mp3", "name": "🌑 Foresta misteriosa", "subtitle": "Esplorazione e tensione lieve", "url": "https://opengameart.org/sites/default/files/wandering_woodlands.mp3", "source": "https://opengameart.org/content/fantasy-song-pack-volume-1", "loop": true, "group": "dark"}], FX=[{"id":"sword","name":"Fendente di spada","emoji":"⚔️","urls":[],"source":"https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes","aliases":["sword","sword attack","sword swing","slash","cut","blade","fendente","spada","attacco spada","attack","woosh"]},{"id":"defense","name":"Parata / clash metallico","emoji":"🛡️","urls":[],"source":"https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes","aliases":["sword clash","sword block","clash","parry","block","metal hit","shield","clash","parata","difesa","scudo","metal"]},{"id":"hit","name":"Impatto / ferita","emoji":"💥","urls":[],"source":"https://opengameart.org/content/hit-sounds","aliases":["impact","hit","flesh","cut","hurt","thud","impact sword","ferita","danno","colpo","hit sound"]},{"id":"punch","name":"Colpo contundente","emoji":"👊","urls":[],"source":"https://opengameart.org/content/hit-sounds","aliases":["wood hit","dull impact","blunt","punch","thud","impact","pugno","contundente","legno","hit"]},{"id":"critical","name":"Colpo critico pesante","emoji":"💥","urls":[],"source":"https://opengameart.org/content/hit-sounds","aliases":["heavy impact","heavy hit","metal hit","big impact","critical","critico","heavy sword","hit"]},{"id":"swordShort","name":"Attacco rapido (corto)","emoji":"⚔️","urls":[],"source":"","aliases":["attacco rapido","fendente corto","short attack","quick slash","sword short"]},{"id":"damageFlesh","name":"Ferita sulla carne","emoji":"🩸","urls":[],"source":"","aliases":["ferita sulla carne","danno carne","taglio carne","flesh wound","wound sound"]},{"id":"playerDeath","name":"Morte del giocatore","emoji":"💀","urls":[],"source":"","aliases":["morte del giocatore","morte giocatore","player death","character death"]},{"id":"monsterDeath","name":"Morte del mostro","emoji":"👹","urls":[],"source":"","aliases":["morte del mostro","morte mostro","monster death","creature death"]},{"id":"victory","name":"Vittoria","emoji":"🏆","urls":[],"source":"","aliases":["vittoria","vittoria finale","victory","victory sting"]},{"id":"glass","name":"Fiala / vetro e tappo","emoji":"🧪","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["vial","bottle","cork","glass","potion","fiala","bottiglia","tappo","potion bottle"]},{"id":"poison","name":"Liquido / veleno","emoji":"☠️","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["liquid","pouring","water pour","bubbling","vial","bottle","liquido","versare","riboll","veleno","potion"]},{"id":"freeze","name":"Gelo / ghiaccio che si spezza","emoji":"❄️","urls":[],"source":"https://opengameart.org/content/cc0-sounds-library","aliases":["ice","ice crack","crack ice","frozen","water drops","ice spell","ghiaccio","gelo","crack","water"]},{"id":"fire","name":"Fuoco / crepitio","emoji":"🔥","urls":[],"source":"https://opengameart.org/content/cc0-sounds-library","aliases":["fire","fire crackle","campfire","burning","flame","fuoco","crepitio","burn"]},{"id":"heal","name":"Cura / fiala e liquido","emoji":"💚","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["potion","vial","bottle","cork","liquid","fiala","fiaschetta","cura","healing potion"]},{"id":"steps","name":"Passi / avvicinamento","emoji":"👣","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["footstep","footsteps","boots","steps","walking","passi","stivali","walk"]},{"id":"arrow","name":"Freccia / proiettile","emoji":"🏹","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["arrow","bow","quiver","shoot","freccia","arco","frecce"]},{"id":"door","name":"Porta / dungeon","emoji":"🚪","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["door","creak","wood creak","gate","porta","scricchiolio","wooden door"]},{"id":"creature","name":"Creatura / respiro","emoji":"👹","urls":[],"source":"https://opengameart.org/content/sound-effects-pack","aliases":["breathing","growl","snarl","grunt","creature","respiro","ringhio","grunt"]},{"id":"water","name":"Acqua / versare","emoji":"💧","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["water","pouring","water drop","liquid","acqua","goccia","versare"]},{"id":"coins","name":"Monete / tesoro","emoji":"🪙","urls":[],"source":"https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx","aliases":["coins","coin","pouch","metal coins","monete","borsello","tesoro"]},{"id":"cloth","name":"Armatura / cuoio e tessuto","emoji":"🧥","urls":[],"source":"https://opengameart.org/content/sound-effects-pack","aliases":["cloth","leather","fabric","armor","armour","rustle","cuoio","tessuto","armatura"]}], GROUPS=[["⚔️ Combattimento",["sword","swordShort","defense","hit","damageFlesh","punch","critical","playerDeath","monsterDeath","victory","arrow"]],["🧪 Fiale e condizioni",["glass","poison","freeze","fire","heal"]],["👣 Movimento e dungeon",["steps","door","cloth"]],["🐉 Creature e ambiente",["creature","water"]],["💰 Oggetti e tesori",["coins"]]];
+
+const BUILTIN_FX={
+ sword:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/3b694770-e3cb-4db3-ab4e-b8e48f2f7026/D_D___Impatto_spada_su_armatura.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmQxZWE0OGUwM2Q4YzIzMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5NTcyNn0.7ra5bxk2piJHA7DdCXrpdKfu0AOxfcU0vI5WrCUMlHA',
+ defense:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/cf542b71-0c58-4054-82a3-202dc70d549a/D_D___Parata_di_lame.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZTQ3YmJjNWJiN2E5YzU4ZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc2ODc5NX0.dl08-dQr72yArj6XdFR_wnD2ClPdA6M53P5294XqlcI',
+ hit:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/3b694770-e3cb-4db3-ab4e-b8e48f2f7026/D_D___Impatto_spada_su_armatura.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmQxZWE0OGUwM2Q4YzIzMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5NTcyNn0.7ra5bxk2piJHA7DdCXrpdKfu0AOxfcU0vI5WrCUMlHA',
+ punch:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/f19a3389-7613-42f9-bdf4-ecff31bf8f0e/D_D___Colpo_critico.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYzEzOWM5MzIxOTU0N2Q3ZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTczODU0Nn0.pJDtpaRMuHBrvl1mrAImZtfcFdqL-qE1vEGVSsDFIxU',
+ critical:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/f19a3389-7613-42f9-bdf4-ecff31bf8f0e/D_D___Colpo_critico.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYzEzOWM5MzIxOTU0N2Q3ZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTczODU0Nn0.pJDtpaRMuHBrvl1mrAImZtfcFdqL-qE1vEGVSsDFIxU',
+ poison:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/da8595dc-160b-4031-ae4b-ad4da3546e04/D_D___Avvelenamento.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYTI1ZjVkZWM4NTExMDBlOSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTczMDE1Nn0.oHYQmzwFv1llNkSSiCMl-IyUtbvVqLtuBTJrTgpZcfk',
+ freeze:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/048dffcd-c3cd-4266-af4d-1c0678b2af9d/D_D___Congelamento.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNGQzMmI0N2Q2NjQzNDQ1MyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5NTgzN30.nMpVjs91oQLiLDpyj7CAct6LGjCtwW8HpLreJhVKoWU',
+ fire:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/3b2a4958-5eb3-4639-a002-990f0d888cd6/D_D___Scottatura.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDQ5ZDYzOTdjOTFkODdjMyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc3MjMxMX0.d4iL1ZzR1SjzzczFFkvdlbpvTVsGTVB6dNb133jr9wo',
+ heal:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/0baf3a60-5152-4b5f-8ac5-02f12ba86d20/D_D___Cura_magica.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmJhMjJjNTBlNmE2YmRlMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc0Njc2OH0.qro1VsDNfsyPm_bTcd_L_avtLHm8RvvYGxEVaE_BjSA',
+ swordShort:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/6d87cee9-96c6-4e76-b6db-33bbaca85c8e/D_D___Attacco_rapido.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMWQ5N2UzYmIwZmMwM2E2MyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTcxNTg5OX0.PuRXcFTqTa0pwwn3cxAPfhF0Zu1UF9E7d-4r-OOhLZw',
+ damageFlesh:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/9fa1457d-319f-41b0-9bad-4b51c4e384be/D_D___Ferita_sulla_carne__senza_campana_.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYTA3MzJmY2VlZjE0MTRjNSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc4ODIzOH0.-p66Mn4_zAeYCB7C5DaECdxk6r9hxPEsGvDSmRcpi_A',
+ playerDeath:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/41a1d5f7-6dae-4c97-9cf5-e6f3eb0e68fb/D_D___Morte_umana_del_giocatore.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMzU0OThjODVhMzNjZDc0MSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5NDk0OX0.g36fyzbZ6c17Ft-ZErmgC92JFmEDEIi123r7YKB_dD8',
+ monsterDeath:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/45d7210b-c2f6-4257-be50-745e44dee0ee/D_D___Morte_generica_del_mostro.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNDBkZmVkZWEyNGNkZGJhMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTc5OTY1OH0.2Y3NVvOOjV_Q9FN87Jp3qIvA-DqkHXcn4Qt0d7-juyc',
+ victory:'https://dnznrvs05pmza.cloudfront.net/audio_sfx/28261183-ad00-487f-a68e-91fa7be51031/D_D___Vittoria.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOTczMDdjYjk5NjVlNjk0OSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsImV4cCI6MTc5MTc2OTI3M30.sLoaAJI1k-yBVkl8hXgK0iXz2235jOuf_px6qbaqc2A',
+};
+const OFFLINE_FX={sword:'assets/impatto-spada.wav',defense:'assets/parata-lame.wav',hit:'assets/ferita-carne.wav',punch:'assets/colpo-critico.wav',critical:'assets/colpo-critico.wav',poison:'assets/avvelenamento.wav',freeze:'assets/congelamento.wav',fire:'assets/scottatura.wav',heal:'assets/cura-magica.wav',swordShort:'assets/impatto-spada.wav',damageFlesh:'assets/ferita-carne.wav',playerDeath:'assets/morte-giocatore.wav',monsterDeath:'assets/morte-mostro.wav',victory:'assets/cura-magica.wav'};
+
+let currentMusic=null,currentMusicId=null,fxPlaying=new Set(),musicVol=.65,fxVol=1.4,localFiles=[];
+const $=id=>document.getElementById(id);
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+function setStatus(s){$('status').textContent=s}
+function syncPauseButton(){const b=$('pauseMusic');if(!b)return;const paused=!currentMusic||currentMusic.paused;b.textContent=paused?'▶ Riprendi musica':'Ⅱ Pausa musica'}
+function toggleMusicPause(){if(!currentMusic){setStatus('Nessuna musica in riproduzione');syncPauseButton();return}if(currentMusic.paused){currentMusic.play().then(()=>{setStatus('Musica ripresa');syncPauseButton()}).catch(()=>setStatus('Impossibile riprendere la musica'))}else{currentMusic.pause();setStatus('Musica in pausa');syncPauseButton()}}
+function stopMusic(){if(currentMusic){currentMusic.pause();currentMusic.currentTime=0;currentMusic=null}currentMusicId=null;document.querySelectorAll('.musicPlay').forEach(b=>{b.textContent='▶ Play';b.classList.remove('playing')});syncPauseButton();setStatus('Musica fermata')}
+function stopFx(){for(const h of fxPlaying){try{h.stop()}catch(e){}}fxPlaying.clear();document.querySelectorAll('.fx.playing').forEach(b=>b.classList.remove('playing'));setStatus('Effetti fermati')}
+function stopAll(){stopMusic();stopFx();setStatus('Tutto fermato')}
+function localMatch(terms){let candidates=localFiles.map(f=>({f,n:norm(f.name)}));for(const term of terms){const t=norm(term);let found=candidates.find(x=>x.n===t)||candidates.find(x=>x.n.includes(t));if(found)return found.f}return null}
+function musicSource(t){return localMatch([t.filename||'',t.id,t.name.replace(/[^\w ]/g,''),...(t.aliases||[])])||t.url}
+function playMusic(t){const src=musicSource(t);if(!src){setStatus('File non trovato: '+t.name+' — collega la cartella offline');return}
+if(currentMusic){currentMusic.pause();currentMusic.currentTime=0}
+currentMusic=new Audio(src);currentMusic.volume=musicVol;currentMusic.loop=!!t.loop;currentMusicId=t.id;
+document.querySelectorAll('.musicPlay').forEach(b=>{b.textContent='▶ Play';b.classList.remove('playing')});
+const b=document.querySelector('[data-music="'+t.id+'"]');if(b){b.textContent='Ⅱ In riproduzione';b.classList.add('playing')}
+setStatus('Musica: '+t.name);
+currentMusic.play().then(syncPauseButton).catch(()=>setStatus('Audio non raggiungibile. Riprova online o collega i file offline.'))}
+const QUICK_MAP={
+  'attacco fendente':'sword','attacco rapido corto':'swordShort','parata clash metallico':'defense','danno ferita sulla carne':'damageFlesh','colpo critico pesante':'critical','morte del giocatore':'playerDeath','morte del mostro':'monsterDeath','vittoria':'victory',
+  'cura fiala e liquido':'heal','liquido veleno':'poison','gelo ghiaccio che si spezza':'freeze','fuoco crepitio':'fire',
+  'colpo contundente':'punch','fiala vetro e tappo':'glass','passi avvicinamento':'steps','porta dungeon':'door'
+};
+let audioCtx=null,masterCompressor=null;
+const bufferCache=new Map();
+function audioEngine(){
+ if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();masterCompressor=audioCtx.createDynamicsCompressor();masterCompressor.threshold.value=-10;masterCompressor.knee.value=18;masterCompressor.ratio.value=12;masterCompressor.attack.value=.003;masterCompressor.release.value=.22;masterCompressor.connect(audioCtx.destination)}
+ return audioCtx;
+}
+function findFx(label){
+ const target=norm(label);
+ const id=QUICK_MAP[target]||FX.find(x=>norm(x.name)===target)?.id;
+ const effect=FX.find(x=>x.id===id)||FX.find(x=>x.aliases.some(a=>target===norm(a)));
+ if(!effect)return null;
+ const candidates=localFiles.map(file=>({file,n:norm(file.name)}));
+ // Prefer a full, specific alias; avoid matching broad words such as "hit" before a precise name.
+ const terms=[effect.name,...effect.aliases].map(norm).filter(Boolean).sort((a,b)=>b.length-a.length);
+ for(const term of terms){
+   const exact=candidates.find(x=>x.n===term);
+   if(exact)return {effect,src:URL.createObjectURL(exact.file),local:true,file:exact.file.name};
+ }
+ for(const term of terms.filter(t=>t.length>=5)){
+   const found=candidates.find(x=>x.n.includes(term));
+   if(found)return {effect,src:URL.createObjectURL(found.file),local:true,file:found.file.name};
+ }
+ const builtin=BUILTIN_FX[effect.id];
+ if(builtin)return {effect,src:builtin,fallback:OFFLINE_FX[effect.id],local:false,builtin:true,file:builtin.split('/').pop()};
+ return {effect,local:false,urls:[]};
+}
+function boostedVolume(){return Math.max(0,Math.min(2,fxVol))*2.0}
+async function decodedBuffer(url){
+ if(bufferCache.has(url))return bufferCache.get(url);
+ const promise=(async()=>{const ctx=audioEngine();const response=await fetch(url,{cache:'force-cache'});if(!response.ok)throw new Error('HTTP '+response.status);const data=await response.arrayBuffer();return await ctx.decodeAudioData(data)})();
+ bufferCache.set(url,promise);try{return await promise}catch(e){bufferCache.delete(url);throw e}
+}
+async function playBuffered(url,label,btn){
+ const ctx=audioEngine();await ctx.resume();const buffer=await decodedBuffer(url);const src=ctx.createBufferSource();src.buffer=buffer;const gain=ctx.createGain();gain.gain.value=boostedVolume();src.connect(gain);gain.connect(masterCompressor);
+ const handle={stop:()=>{try{src.stop()}catch(e){}},gain,source:src};fxPlaying.add(handle);if(btn)btn.classList.add('playing');
+ src.onended=()=>{fxPlaying.delete(handle);if(btn)btn.classList.remove('playing')};src.start();setStatus('Effetto: '+label+' · volume potenziato');
+}
+function playNative(url,label,btn,tryUrls,index=0){
+ const a=new Audio(url);a.volume=1;const handle={stop:()=>{a.pause();a.currentTime=0}};fxPlaying.add(handle);if(btn)btn.classList.add('playing');
+ a.addEventListener('ended',()=>{fxPlaying.delete(handle);if(btn)btn.classList.remove('playing')},{once:true});
+ a.addEventListener('error',()=>{fxPlaying.delete(handle);if(btn)btn.classList.remove('playing');if(tryUrls&&index+1<tryUrls.length)playFxUrl(tryUrls[index+1],label,btn,tryUrls,index+1);else setStatus('Questa fonte audio non risponde: prova a collegare i file offline.')},{once:true});
+ a.play().then(()=>setStatus('Effetto: '+label)).catch(()=>{fxPlaying.delete(handle);if(btn)btn.classList.remove('playing');if(tryUrls&&index+1<tryUrls.length)playFxUrl(tryUrls[index+1],label,btn,tryUrls,index+1);else setStatus('Audio bloccato o non raggiungibile: riprova o usa un file offline.')});
+}
+async function playFxUrl(url,label,btn,urls,index){
+ try{await playBuffered(url,label,btn)}catch(e){playNative(url,label,btn,urls,index)}
+}
+function playFx(label,btn){
+ const match=findFx(label);
+ if(!match){setStatus('Effetto non disponibile: controlla la mappatura audio.');return}
+ if(match.local||match.builtin){const tries=match.builtin?[match.src,match.fallback].filter(Boolean):[match.src];playFxUrl(match.src,label+(match.builtin?'':' ('+match.file+')'),btn,tries,0);return}
+ const page=match.effect.source;
+ setStatus('Manca un Foley adatto per «'+label+'». Scarica la libreria CC0 indicata nella scheda Offline, estraila e collega la cartella audio. Nessun suono generico verrà usato al suo posto.');
+ if(page)window.open(page,'_blank','noopener');
+}
+function musicCard(t){const c=document.createElement('article');c.className='card';const h=document.createElement('h3');h.textContent=t.name;const p=document.createElement('p');p.textContent=t.subtitle;const acts=document.createElement('div');acts.className='actions';const b=document.createElement('button');b.className='primary musicPlay';b.dataset.music=t.id;b.textContent='▶ Play';b.onclick=()=>playMusic(t);const a=document.createElement('a');a.href=t.source;a.target='_blank';a.rel='noopener';a.textContent='Fonte / licenza ↗';acts.append(b,a);c.append(h,p,acts);return c}
+function fxButton(label){const b=document.createElement('button');b.className='fx';b.innerHTML='<span>'+label+'</span><small>▶ Riproduci</small>';b.onclick=()=>playFx(label,b);return b}
+function build(){MUSIC.forEach(t=>{const c=musicCard(t);if(t.group==='battle')$('battleMusic').append(c);else $('moodMusic').append(c)});
+const quick=['Attacco / fendente','Attacco rapido / corto','Parata / clash metallico','Danno / ferita sulla carne','Colpo critico pesante','Morte del giocatore','Morte del mostro','Vittoria','Cura / fiala e liquido','Liquido / veleno','Gelo / ghiaccio che si spezza','Fuoco / crepitio'];quick.forEach(x=>$('quickFx').append(fxButton(x)));
+GROUPS.forEach(([name,labels])=>{const wrap=document.createElement('div');wrap.style.margin='16px 0';const h=document.createElement('h3');h.textContent=name;const grid=document.createElement('div');grid.className='fxgrid';labels.forEach(x=>grid.append(fxButton(FX.find(f=>f.id===x)?.name||x)));wrap.append(h,grid);$('fxGroups').append(wrap)})}
+$('battleSequence').onclick=()=>{const intro=MUSIC.find(x=>x.id==='entry'), battle=MUSIC.find(x=>x.id==='battle');const src=musicSource(intro);if(!src){playMusic(battle);return}if(currentMusic){currentMusic.pause();currentMusic.currentTime=0}currentMusic=new Audio(src);currentMusic.volume=musicVol;currentMusicId='entry';setStatus('Entrata in battaglia…');currentMusic.play().then(syncPauseButton).catch(()=>{playMusic(battle)});currentMusic.onended=()=>playMusic(battle)};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='panel-'+b.dataset.panel))});
+$('pauseMusic').onclick=toggleMusicPause;$('stopMusic').onclick=stopMusic;$('stopFx').onclick=stopFx;$('stopAll').onclick=stopAll;
+$('mv').oninput=e=>{musicVol=+e.target.value/100;$('mvn').textContent=e.target.value+'%';if(currentMusic)currentMusic.volume=musicVol};
+$('fv').oninput=e=>{fxVol=+e.target.value/100;$('fvn').textContent=e.target.value+'%';fxPlaying.forEach(h=>{if(h.gain&&audioCtx)h.gain.gain.setTargetAtTime(boostedVolume(),audioCtx.currentTime,.015)})};
+function loadFiles(files){localFiles=[...localFiles,...[...files].filter(f=>f.type.startsWith('audio/')||/\.(mp3|ogg|wav|m4a|aac|flac)$/i.test(f.name))];$('localList').textContent='File audio collegati: '+localFiles.length+' — '+localFiles.slice(-8).map(f=>f.name).join(', ');setStatus(localFiles.length+' file audio disponibili nella libreria Foley')}
+$('folder').addEventListener('change',e=>loadFiles(e.target.files));$('files').addEventListener('change',e=>loadFiles(e.target.files));
+build();
+
+// App installabile: registra la cache offline quando è servita da HTTPS o localhost.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Service worker non disponibile:', err)));
+}
+</script></body></html>

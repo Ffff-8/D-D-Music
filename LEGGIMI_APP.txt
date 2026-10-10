@@ -1,0 +1,24 @@
+D&D SOUNDBOARD — VERSIONE APP INSTALLABILE (PWA)
+
+Questa cartella contiene una Progressive Web App installabile su Android e su PC/Mac tramite un browser compatibile. Una volta aperta e memorizzata sul dispositivo, la soundboard e gli effetti locali funzionano anche offline.
+
+IMPORTANTE
+Per installarla come app, i file devono essere pubblicati su un indirizzo HTTPS. Aprire index.html direttamente dal file manager permette di provare la pagina, ma non abilita l'installazione PWA né il service worker offline. Non serve un server a pagamento: è sufficiente un hosting statico HTTPS.
+
+INSTALLAZIONE SU ANDROID
+1. Pubblica la cartella su un hosting statico HTTPS.
+2. Apri l'indirizzo con Chrome.
+3. Apri il menu ⋮ e scegli “Installa app” oppure “Aggiungi a schermata Home”.
+4. Avvia D&D Soundboard dall'icona. Dopo il primo caricamento, gli effetti WAV locali sono disponibili offline.
+
+INSTALLAZIONE SU WINDOWS / MAC / LINUX
+1. Pubblica la cartella su un hosting statico HTTPS.
+2. Apri l'indirizzo con Chrome o Edge.
+3. Usa l'icona “Installa” nella barra degli indirizzi, oppure menu → “Installa D&D Soundboard”.
+4. L'app comparirà tra le applicazioni e potrà essere avviata in una finestra separata.
+
+AGGIORNAMENTO
+Quando cambi i file e ripubblichi l'app, aggiorna la versione della cache modificando CACHE_NAME in sw.js (ad esempio dnd-soundboard-v2).
+
+AUDIO
+Gli effetti WAV inclusi sono locali. Alcuni effetti AI più realistici sono collegati a URL remoti temporanei e potrebbero non essere disponibili offline o scadere; in tal caso restano i fallback locali. Questa versione non è un APK Android nativo né un EXE Windows: è un'app web installabile dal browser.
